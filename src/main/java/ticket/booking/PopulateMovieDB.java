@@ -7,6 +7,7 @@ import ticket.booking.dao.MovieDAO;
 import ticket.booking.dao.MovieImpl;
 import ticket.booking.pojo.Movie;
 
+//Class to add records to the Movie table.
 public class PopulateMovieDB {
 
 	public static void main(String[] args) {

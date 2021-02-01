@@ -12,7 +12,9 @@ import ticket.booking.pojo.Movie;
 import ticket.booking.pojo.Event;
 import ticket.booking.pojo.Screen;
 
+//Class to add records to the Event table.
 public class PopulateEventDB {
+
 	public static void main(String[] args) {
 		EventDAO eventDAO = new EventImpl();
 		MovieDAO movieDAO = new MovieImpl();

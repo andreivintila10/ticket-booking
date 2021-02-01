@@ -13,16 +13,20 @@ import ticket.booking.pojo.Movie;
 
 public class MovieImpl implements MovieDAO {
 
+    // Method to get all movies.
 	@Override
 	public List<Movie> getAllMovies() {
+	    // Establish a connection.
 		Connection connection = DBConnectionFactory.getConnection();
 		Statement statement = null;
 		ResultSet resultSet = null;
 
 		try {
+		    // Create statement and execute MySQL query.
 			statement = connection.createStatement();
 			resultSet = statement.executeQuery("SELECT * FROM `movies`");
 
+			// Retrieve all movies.
 			Movie movie;
 			List<Movie> movies = new ArrayList<Movie>();
 			while (resultSet.next()) {
@@ -43,17 +47,21 @@ public class MovieImpl implements MovieDAO {
 		return null;
 	}
 
+	// Method to get movie by id
 	@Override
 	public Movie getMovie(int id) {
+	    // Establish a connection.
 		Connection connection = DBConnectionFactory.getConnection();
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
 		try {
+		    // Prepare statement and execute MySQL query.
 			preparedStatement = connection.prepareStatement("SELECT * FROM `movies` WHERE `id` = ?");
 			preparedStatement.setInt(1, id);
 			resultSet = preparedStatement.executeQuery();
 
+			// If the movie was found then retrieve it.
 			if (resultSet.next()) {
 				Movie movie = extractMovieFromResultSet(resultSet);
 				return movie;
@@ -70,17 +78,21 @@ public class MovieImpl implements MovieDAO {
 		return null;
 	}
 
+	// Method to get movie by title
 	@Override
 	public Movie getMovieByTitle(String title) {
+	    // Establish a connection.
 		Connection connection = DBConnectionFactory.getConnection();
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
 		try {
+		    // Prepare statement and execute MySQL query.
 			preparedStatement = connection.prepareStatement("SELECT * FROM `movies` WHERE `title` = ?");
 			preparedStatement.setString(1, title);
 			resultSet = preparedStatement.executeQuery();
 
+			// If the movie was found then retrieve it.
 			if (resultSet.next()) {
 				Movie movie = extractMovieFromResultSet(resultSet);
 				return movie;
@@ -97,18 +109,22 @@ public class MovieImpl implements MovieDAO {
 		return null;
 	}
 
+	// Method to insert a movie.
 	@Override
 	public boolean insertMovie(Movie movie) {
+	    // Establish a connection.
 		Connection connection = DBConnectionFactory.getConnection();
 		PreparedStatement preparedStatement = null;
 
 		try {
+		    // Prepare statement and execute MySQL update.
 			preparedStatement = connection.prepareStatement("INSERT INTO `movies` VALUES (NULL, ?, ?, ?, ?)");
 			preparedStatement.setString(1, movie.getTitle());
 			preparedStatement.setString(2, movie.getGenre());
 			preparedStatement.setInt(3, movie.getYear());
 			preparedStatement.setDouble(4, movie.getRating());
 			
+			// If insertion was successful then return true.
 			int hasSaved = preparedStatement.executeUpdate();
 
 			if (hasSaved == 1) {
@@ -125,12 +141,15 @@ public class MovieImpl implements MovieDAO {
 		return false;
 	}
 
+	// Method to update a movie.
 	@Override
 	public boolean updateMovie(Movie movie) {
+	    // Establish a connection.
 		Connection connection = DBConnectionFactory.getConnection();
 		PreparedStatement preparedStatement = null;
 
 		try {
+		    // Prepare statement and execute MySQL update.
 			preparedStatement = connection.prepareStatement("UPDATE `movies` SET `id` = ?, `title` = ?, `genre` = ?, `year` = ?, `rating` = ?");
 			preparedStatement.setInt(1, movie.getId());
 			preparedStatement.setString(2, movie.getTitle());
@@ -140,6 +159,7 @@ public class MovieImpl implements MovieDAO {
 			
 			int hasUpdated = preparedStatement.executeUpdate();
 
+			// If update was successful then return true.
 			if (hasUpdated == 1) {
 				return true;
 			}
@@ -154,17 +174,21 @@ public class MovieImpl implements MovieDAO {
 		return false;
 	}
 
+	// Method to delete a movie.
 	@Override
 	public boolean deleteMovie(Movie movie) {
+	    // Establish a connection.
 		Connection connection = DBConnectionFactory.getConnection();
 		PreparedStatement preparedStatement = null;
 
 		try {
+		    // Prepare statement and execute MySQL update.
 			preparedStatement = connection.prepareStatement("DELETE FROM `movies` WHERE `id` = ?");
 			preparedStatement.setInt(1, movie.getId());
 
 			int hasDeleted = preparedStatement.executeUpdate();
 
+			// If delete was successful then return true.
 			if (hasDeleted == 1) {
 				return true;
 			}
@@ -179,6 +203,8 @@ public class MovieImpl implements MovieDAO {
 		return false;
 	}
 
+	// Method to facilitate extracting cinema information.
+    // Throws SQLException
 	private Movie extractMovieFromResultSet(ResultSet resultSet) throws SQLException {
 		Movie movie = new Movie();
 

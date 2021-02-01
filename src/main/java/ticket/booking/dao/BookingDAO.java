@@ -4,6 +4,7 @@ import java.util.List;
 
 import ticket.booking.pojo.Booking;
 
+// BookingDAO interface which defines a set of CRUD methods to be implemented.
 public interface BookingDAO {
 	public List<Booking> getAllBookings();
 	public Booking getBooking(int id);

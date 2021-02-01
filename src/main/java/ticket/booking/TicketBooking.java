@@ -1,15 +1,33 @@
 package ticket.booking;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
+
+import ticket.booking.networking.BookRequestMsgImpl;
+import ticket.booking.networking.BookResponseMsg;
+import ticket.booking.networking.BookResponseMsgImpl;
+import ticket.booking.networking.BookingsRequestMsgImpl;
+import ticket.booking.networking.BookingsResponseMsg;
+import ticket.booking.networking.BookingsResponseMsgImpl;
+import ticket.booking.networking.CancelRequestMsgImpl;
+import ticket.booking.networking.CancelResponseMsg;
+import ticket.booking.networking.CancelResponseMsgImpl;
+import ticket.booking.networking.EventsRequestMsgImpl;
+import ticket.booking.networking.EventsResponseMsg;
+import ticket.booking.networking.EventsResponseMsgImpl;
+import ticket.booking.networking.ExitRequestMsgImpl;
+import ticket.booking.networking.ExitResponseMsg;
+import ticket.booking.networking.ExitResponseMsgImpl;
+import ticket.booking.networking.Message;
 
 import ticket.booking.pojo.Booking;
 import ticket.booking.pojo.Event;
 
 
+// TicketBooking class.
 public class TicketBooking {
 
+    // Method to print the menu with option.
 	private static void printMenu() {
 		System.out.println("=========MENU=========");
 		System.out.println("1. Show My Bookings");
@@ -20,139 +38,169 @@ public class TicketBooking {
 		System.out.println("======================");
 	}
 
+	// Method to print a user friendly table of bookings.
 	private static void printBookings(List<Booking> bookings) {
-		if (bookings != null) {
-			System.out.println("  Showing bookings");
-			System.out.println();
-			System.out.format("  %10s | %8s | %14s | %19s%n", "Booking id", "Event id", "Tickets Booked", "Tickets Total Value");
-			System.out.println("  -----------|----------|----------------|--------------------");
-			for (Booking booking : bookings) {
-				System.out.format("        %04d |     %04d |            %3d |            %8.2f%n", booking.getId(), booking.getEventId(), booking.getTicketsBooked(), booking.getTicketsValueTotal());
-			}
-			System.out.println("  -----------|----------|----------------|--------------------");
+		System.out.println("  Showing bookings");
+		System.out.println();
+		System.out.format("  %10s | %8s | %14s | %19s%n", "Booking id", "Event id", "Tickets Booked", "Tickets Total Value");
+		System.out.println("  -----------|----------|----------------|--------------------");
+		for (Booking booking : bookings) {
+			System.out.format("        %04d |     %04d |            %3d |            %8.2f%n", booking.getId(), booking.getEventId(), booking.getTicketsBooked(), booking.getTicketsValueTotal());
 		}
+		System.out.println("  -----------|----------|----------------|--------------------");
 	}
 
+	// Method to print a user friendly table of events.
 	private static void printEvents(List<Event> events, List<String> movieTitles) {
-		if (events != null) {
-			System.out.println("  Showing events");
-			System.out.println();
-			System.out.format("  Event id | %40s | Ticket Price | %13s | Tickets Available%n", "Movie", "Date & Time");
-			System.out.println("  ---------|------------------------------------------|--------------|---------------|------------------");
-			Event event;
-			String movieTitle;
-			for (int index = 0; index < events.size(); index++) {
-				event = events.get(index);
-				movieTitle = movieTitles.get(index);
-				System.out.format("      %04d | %40s |     %8.2f | %13s |               %3d%n", event.getId(), movieTitle, event.getTicketPrice(), event.getDateFormated(), event.getTicketsAvailable());
-			}
-			System.out.println("  ---------|------------------------------------------|--------------|---------------|------------------");
+		System.out.println("  Showing events");
+		System.out.println();
+		System.out.format("  Event id | %40s | Ticket Price | %13s | Tickets Available%n", "Movie", "Date & Time");
+		System.out.println("  ---------|------------------------------------------|--------------|---------------|------------------");
+		Event event;
+		String movieTitle;
+		for (int index = 0; index < events.size(); index++) {
+			event = events.get(index);
+			movieTitle = movieTitles.get(index);
+			System.out.format("      %04d | %40s |     %8.2f | %13s |               %3d%n", event.getId(), movieTitle, event.getTicketPrice(), event.getDateFormated(), event.getTicketsAvailable());
 		}
+		System.out.println("  ---------|------------------------------------------|--------------|---------------|------------------");
 	}
 
+	public static boolean validateYesNo(String string) {
+	    return string.toLowerCase().equals("yes") || string.toLowerCase().equals("y");
+	}
+
+	// Method to process client-server communication.
 	public static void run(Client client) throws IOException {
 		printMenu();
+		System.out.println();
 
-		String message, response, guestName;
-		String[] split_response;
+		// Open standard input stream reader.
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+
+		// Declaring some variables that will be reused among each request.
+		int eventId, ticketsBooked, bookingId;
+		String response, guestName;
 		int option;
 		do {
-			System.out.print("Option: ");
+		    // Get option.
+		    System.out.print("Option: ");
 			option = Integer.parseInt(in.readLine());
+
+			// A message exchange happens by sending a request message to the server and then fetching
+            // the response once it is ready. The request message is created so it doesn't require
+            // the need to access any parameters and hence, we can use the base interface Message to define
+            // our request message.
+			// Identify chosen option.
 			switch (option) {
+			    // Option to display bookings made on a given guestName.
 				case 1:	 System.out.print("  Your name: ");
 						 guestName = in.readLine();
-						 message = "send_bookings," + guestName;
-						 response = client.sendMessage(message);
-						 split_response = response.split(":");
-						 if (Boolean.parseBoolean(split_response[0])) {
-							 List<Booking> bookings = new ArrayList<Booking>();
 
-							 String[] stringBookings = split_response[1].split(";");
-							 for (String stringBooking : stringBookings) {
-								 String[] bookingAttr = stringBooking.split(",");
-								 Booking booking = new Booking(Integer.parseInt(bookingAttr[0]), Integer.parseInt(bookingAttr[1]), bookingAttr[2], 
-										 					   Integer.parseInt(bookingAttr[3]), Double.parseDouble(bookingAttr[4]));
-								 bookings.add(booking);
-							 }
-							 printBookings(bookings);
+						 Message bookingsRequest = new BookingsRequestMsgImpl(guestName);
+						 bookingsRequest.createMessage();
+						 response = client.sendMessage(bookingsRequest);
+
+						 BookingsResponseMsg bookingsResponse = new BookingsResponseMsgImpl();
+						 bookingsResponse.parseJSONString(response);
+
+						 if (bookingsResponse.getStatus() == 1) {
+							 printBookings(bookingsResponse.getBookings());
 						 }
 						 else {
-							 System.out.println(split_response[1]);
+							 System.out.println("  No bookings were made by guest " + guestName);
 						 }
 
 						 System.out.println();
 						 break;
 
-				case 2:  response = client.sendMessage("send_events,true");
-						 split_response = response.split(":");
-						 if (Boolean.parseBoolean(split_response[0])) {
-							 List<Event> events = new ArrayList<Event>();
-							 List<String> movieTitles = new ArrayList<String>();
+				// Option to make a booking for a user.
+			    // Two client-server message exchanges happen here.
+				// The first one asks for a list of all current Events and then displays it to the user.
+				// The second one asks to make a booking for the desired event and then displays
+			    // a booking reference number upon a successful booking.
+				case 2:  Message eventsRequest = new EventsRequestMsgImpl();
+                         eventsRequest.createMessage();
+                         response = client.sendMessage(eventsRequest);
 
-							 String[] stringEvents = split_response[1].split(";");
-							 for (String stringEvent : stringEvents) {
-								 String[] eventAttr = stringEvent.split(",");
-								 Event event = new Event();
+                         EventsResponseMsg eventsResponse = new EventsResponseMsgImpl();
+                         eventsResponse.parseJSONString(response);
 
-								 event.setId(Integer.parseInt(eventAttr[0]));
-								 movieTitles.add(eventAttr[1]);
-								 event.setScreenId(Integer.parseInt(eventAttr[2]));
-								 event.setDateFromTimeInMillis(Long.parseLong(eventAttr[3]));
-								 event.setTicketPrice(Double.parseDouble(eventAttr[4]));
-								 event.setTicketsAvailable(Integer.parseInt(eventAttr[5]));
-								 
-								 events.add(event);
-							 }
-							 printEvents(events, movieTitles);
-						 }
-						 else {
-							 System.out.println(split_response[1]);
-							 System.out.println();
-							 break;
-						 }
+                         if (eventsResponse.getStatus() == 1) {
+                             printEvents(eventsResponse.getEvents(), eventsResponse.getMovieTitles());
+                             System.out.println();
 
-						 System.out.println();
-						 System.out.print("  Book event: ");
-						 int eventId = Integer.parseInt(in.readLine());
-						 System.out.print("  Number of tickets: ");
-						 int ticketsNo = Integer.parseInt(in.readLine());
-						 System.out.print("  Guest name: ");
-						 guestName = in.readLine();
-						 message = "book," + eventId + "," + guestName + "," + ticketsNo;
-						 response = client.sendMessage(message);
-						 System.out.println(response);
+                             System.out.print("  Book event: ");
+                             eventId = Integer.parseInt(in.readLine());
+
+                             System.out.print("  Number of tickets: ");
+                             ticketsBooked = Integer.parseInt(in.readLine());
+
+                             System.out.print("  Guest name: ");
+                             guestName = in.readLine();
+
+                             // Make booking and wait for a booking reference number if successful.
+                             Message bookRequest = new BookRequestMsgImpl(eventId, ticketsBooked, guestName);
+                             bookRequest.createMessage();
+                             response = client.sendMessage(bookRequest);
+
+                             BookResponseMsg bookResponse = new BookResponseMsgImpl();
+                             bookResponse.parseJSONString(response);
+
+                             System.out.println(bookResponse.getMessage());
+                         }
+                         else {
+                             System.out.println("  There are no events at the moment");
+                         }
+
 						 System.out.println();
 						 break;
 
+				// Option to cancel a booking.
 				case 3:  System.out.print("  Booking id: ");
-						 int bookingId = Integer.parseInt(in.readLine());
-						 System.out.print("  Are you sure you want to cancel your booking? (Y/N): ");
-						 String yesNo = in.readLine();
-						 if (yesNo.toLowerCase().equals("yes") || yesNo.toLowerCase().equals("y")) {
-							 message = "cancel," + bookingId;
-							 response = client.sendMessage(message);
-							 System.out.println(response);
-						 }
-						 else {
-							 System.out.println("  Cancellation aborted");
-						 }
+                         bookingId = Integer.parseInt(in.readLine());
+
+                         System.out.print("  Are you sure you want to cancel your booking? (Y/N): ");
+                         String yesNo = in.readLine();
+
+                         if (TicketBooking.validateYesNo(yesNo)) {
+                             Message cancelRequest = new CancelRequestMsgImpl(bookingId);
+                             cancelRequest.createMessage();
+                             response = client.sendMessage(cancelRequest);
+
+                             CancelResponseMsg cancelResponse = new CancelResponseMsgImpl();
+                             cancelResponse.parseJSONString(response);
+
+                             System.out.println(cancelResponse.getMessage());
+                         }
+                         else {
+                             System.out.println("  Cancellation revoked");
+                         }
 
 						 System.out.println();
 						 break;
 
-				case 0:  System.out.println("  Client exiting...");
-						 client.sendMessage("bye");
-						 in.close();
+				// Option to exit client.
+				case 0:  Message exitRequest = new ExitRequestMsgImpl();
+				         exitRequest.createMessage();
+                         response = client.sendMessage(exitRequest);
+
+                         ExitResponseMsg exitResponse = new ExitResponseMsgImpl();
+                         exitResponse.parseJSONString(response);
+                         System.out.println(exitResponse.getMessage());
+                         System.out.println();
 						 break;
 
+				// Default option in case the selected option is not defined.
 				default: System.out.println("  Invalid option");
 						 System.out.println();
 						 break;
 			}
 
-		} while (option != 0);
+		} while (option != 0);    // Keep asking for options until the user wishes to exit.
+
+		System.out.println("Client exiting...");
+		in.close();
 	}
 
 

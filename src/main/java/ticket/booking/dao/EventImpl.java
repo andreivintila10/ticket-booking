@@ -13,16 +13,20 @@ import ticket.booking.pojo.Event;
 
 public class EventImpl implements EventDAO {
 
+    // Method to get all events.
 	@Override
 	public List<Event> getAllEvents() {
+	    // Establish a connection.
 		Connection connection = DBConnectionFactory.getConnection();
 		Statement statement = null;
 		ResultSet resultSet = null;
 
 		try {
+		    // Create statement and execute MySQL query.
 			statement = connection.createStatement();
 			resultSet = statement.executeQuery("SELECT * FROM `events`");
 
+			// Retrieve all events.
 			Event event;
 			List<Event> events = new ArrayList<Event>();
 			while (resultSet.next()) {
@@ -43,18 +47,22 @@ public class EventImpl implements EventDAO {
 		return null;
 	}
 
+	// Method to get event by id
 	@Override
 	public Event getEvent(int id) {
+	    // Establish a connection.
 		Connection connection = DBConnectionFactory.getConnection();
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
 		try {
+		    // Prepare statement and execute MySQL query.
 			preparedStatement = connection.prepareStatement("SELECT * FROM `events` WHERE `id` = ?");
 			preparedStatement.setInt(1, id);
 
 			resultSet = preparedStatement.executeQuery();
 
+			// If the event was found then retrieve it.
 			Event event;
 			if (resultSet.next()) {
 				event = extractEventFromResultSet(resultSet);
@@ -72,13 +80,16 @@ public class EventImpl implements EventDAO {
 		return null;
 	}
 
+	// Method to insert an event.
 	@Override
 	public int insertEvent(Event event) {
+	    // Establish a connection.
 		Connection connection = DBConnectionFactory.getConnection();
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
 		try {
+		    // Prepare statement and execute MySQL update.
 			preparedStatement = connection.prepareStatement("INSERT INTO `events` VALUES (NULL, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 			preparedStatement.setInt(1, event.getMovieId());
 			preparedStatement.setInt(2, event.getScreenId());
@@ -88,6 +99,7 @@ public class EventImpl implements EventDAO {
 
 			int hasSaved = preparedStatement.executeUpdate();
 
+			// If insertion was successful then return event id.
 			if (hasSaved == 1) {
 				resultSet = preparedStatement.getGeneratedKeys();
 				if (resultSet.next()) {
@@ -106,12 +118,15 @@ public class EventImpl implements EventDAO {
 		return 0;
 	}
 
+	// Method to update an event.
 	@Override
 	public boolean updateEvent(Event event) {
+	    // Establish a connection.
 		Connection connection = DBConnectionFactory.getConnection();
 		PreparedStatement preparedStatement = null;
 
 		try {
+		    // Prepare statement and execute MySQL update.
 			preparedStatement = connection.prepareStatement("UPDATE `events` SET `id` = ?, `movie_id` = ?, `screen_id` = ?, `date` = ?, `ticket_price` = ?, `tickets_available` = ?");
 			preparedStatement.setInt(1, event.getId());
 			preparedStatement.setInt(2, event.getMovieId());
@@ -122,6 +137,7 @@ public class EventImpl implements EventDAO {
 
 			int hasUpdated = preparedStatement.executeUpdate();
 
+			// If update was successful then return true.
 			if (hasUpdated == 1) {
 				return true;
 			}
@@ -136,17 +152,21 @@ public class EventImpl implements EventDAO {
 		return false;
 	}
 
+	// Method to delete an event.
 	@Override
 	public boolean deleteEvent(Event event) {
+	    // Establish a connection.
 		Connection connection = DBConnectionFactory.getConnection();
 		PreparedStatement preparedStatement = null;
 
 		try {
+		    // Prepare statement and execute MySQL update.
 			preparedStatement = connection.prepareStatement("DELETE FROM `events` WHERE `id` = ?");
 			preparedStatement.setInt(1, event.getId());
 
 			int hasDeleted = preparedStatement.executeUpdate();
 
+			// If delete was successful then return true.
 			if (hasDeleted == 1) {
 				return true;
 			}
@@ -161,6 +181,8 @@ public class EventImpl implements EventDAO {
 		return false;
 	}
 
+	// Method to facilitate extracting cinema information.
+    // Throws SQLException
 	public Event extractEventFromResultSet(ResultSet resultSet) throws SQLException {
 		Event event = new Event();
 

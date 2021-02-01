@@ -3,12 +3,15 @@ package ticket.booking;
 import java.io.*;
 import java.net.*;
 
+// Server class.
 public class Server {
 
 	private ServerSocket serverSocket;
 
+	// Method to start and run the server which creates threads to handle every client connection.
 	public void start(int port) throws IOException {
 		serverSocket = new ServerSocket(port);
+		System.out.println("Server is running");
 
         // Running infinite loop for getting client request.
         while (true) {
@@ -39,6 +42,7 @@ public class Server {
         }
 	}
 
+	// Method to stop the server.
 	public void stop() throws IOException {
         serverSocket.close();
     }
@@ -47,4 +51,5 @@ public class Server {
 		Server server = new Server();
 		server.start(4444);  // Server is listening on port 4444.
     }
+
 }

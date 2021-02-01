@@ -19,6 +19,8 @@ import ticket.booking.pojo.Event;
 public class BookingService {
 
 	public List<Booking> getBookingsForGuest(String guestName) {
+	    List<Booking> bookings = new ArrayList<Booking>();
+
 		Connection connection = DBConnectionFactory.getConnection();
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
@@ -29,7 +31,6 @@ public class BookingService {
 			resultSet = preparedStatement.executeQuery();
 
 			Booking booking;
-			List<Booking> bookings = new ArrayList<Booking>();
 			while (resultSet.next()) {
 				booking = new Booking();
 
@@ -41,8 +42,6 @@ public class BookingService {
 
 				bookings.add(booking);
 			}
-			
-			return bookings;
 
 		} catch(SQLException e) {
 			System.out.println("Could not extract bookings for guest " + guestName);
@@ -53,7 +52,7 @@ public class BookingService {
 		    try { connection.close(); } catch (Exception e) { /* ignored */ }
 		}
 
-		return null;
+		return bookings;
 	}
 
 	public int makeBooking(Booking booking) {
